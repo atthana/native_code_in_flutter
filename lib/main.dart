@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(MyApp());
@@ -18,6 +19,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// ===================== code to modify ==========================
+
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
@@ -28,12 +31,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  static const platform = const MethodChannel('samples.grassrootengineer.com');
+  String result = '';
+  bool showText = false;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  Future<void> _getVersionFromNative() async {
+    try {
+      final String data = await platform.invokeMethod('getVersion');
+      result = data;
+    } on PlatformException catch (e) {
+      result = 'Failed to get version: ${e.message}';
+    }
+    showText = !showText;
+    showText ? setState(() => result = result) : setState(() => result = '');
   }
 
   @override
@@ -47,19 +57,16 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
+              result,
               style: Theme.of(context).textTheme.headline4,
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
+        onPressed: _getVersionFromNative,
+        tooltip: 'Get OS Version',
+        child: Icon(Icons.change_history),
       ),
     );
   }
